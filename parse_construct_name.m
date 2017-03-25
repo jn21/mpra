@@ -1,27 +1,27 @@
 function T = parse_construct_name(construct_names)
 %Parse the construct name to extract relevant annotations
 
-var_names1 = {'construct',...
+cell_var_names = {'construct',...
     'oligo_id',...
     'upstream_prefix',...
     'dnstream_prefix',...
     'upstream_id',...
     'dnstream_id'};
-var_names2 = {'upstream_from_enhancer',...
-    'upstream_from_promoter',...
-    'dnstream_from_enhancer',...
-    'dnstream_from_promoter',...
+array_var_names = {'upstream_sequence_gt_10kb_of_tss',...
+    'upstream_sequence_wt_100nt_of_tss',...
+    'dnstream_sequence_gt_10kb_of_tss',...
+    'dnstream_sequence_wt_100nt_of_tss',...
     'upstream_is_reverse',...
     'dnstream_is_reverse',...
     'dnstream_addPAS',...
     'dnstream_addStrongPAS',...
     'dnstream_num_delU1',...
     'dnstream_num_addU1'};
-T1 = cell2table(cell(length(construct_names),length(var_names1)));
-T1.Properties.VariableNames = var_names1;
+T1 = cell2table(cell(length(construct_names),length(cell_var_names)));
+T1.Properties.VariableNames = cell_var_names;
 
-T2 = array2table(zeros(length(construct_names),length(var_names2)));
-T2.Properties.VariableNames = var_names2;
+T2 = array2table(zeros(length(construct_names),length(array_var_names)));
+T2.Properties.VariableNames = array_var_names;
     
 T = [T1 T2];
 
@@ -42,20 +42,20 @@ for ii = 1:length(construct_names)
      
     %is the upstream sequence derived from a promoter or enhancer
     if ~isempty(regexp(temp{2},'within_100nt','once'))
-        T{ii,'upstream_from_enhancer'} = false;
-        T{ii,'upstream_from_promoter'} = true;
+        T{ii,'upstream_sequence_gt_10kb_of_tss'} = false;
+        T{ii,'upstream_sequence_wt_100nt_of_tss'} = true;
     else
-        T{ii,'upstream_from_enhancer'} = true;
-        T{ii,'upstream_from_promoter'} = false;
+        T{ii,'upstream_sequence_gt_10kb_of_tss'} = true;
+        T{ii,'upstream_sequence_wt_100nt_of_tss'} = false;
     end
     
     %is the dnstream sequence derived from a promoter or enhancer
     if ~isempty(regexp(temp{3},'within_100nt','once'))
-        T{ii,'dnstream_from_enhancer'} = false;
-        T{ii,'dnstream_from_promoter'} = true;
+        T{ii,'dnstream_sequence_gt_10kb_of_tss'} = false;
+        T{ii,'dnstream_sequence_wt_100nt_of_tss'} = true;
     else 
-        T{ii,'dnstream_from_enhancer'} = true;
-        T{ii,'dnstream_from_promoter'} = false;
+        T{ii,'dnstream_sequence_gt_10kb_of_tss'} = true;
+        T{ii,'dnstream_sequence_wt_100nt_of_tss'} = false;
     end
     
     %reverse?
