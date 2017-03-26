@@ -30,15 +30,16 @@ coeff_table = table(pratio_lm.CoefficientNames',...
 %% add some metadata - eg if each sequence is from a genomic 'promoter' or 'enhancer'
 coeff_name = coeff_table{:,'name'};
 for ii = 1:length(coeff_name)
+    ii
     
     this_name = coeff_table{ii,'name'};
     splits = strsplit(this_name{1},'_');
     
-    if length(splits) > 1 && strcmp(splits{2},'prefix')
+    if length(splits) > 1 && ismember(splits{1},{'up','dn'})
         coeff_table{ii,'tag'} = splits(1);
         
         %prefix annot
-        idx = find(prefix_annot{:,'prefix'} == str2double(splits{3}));
+        idx = find(prefix_annot{:,'prefix'} == str2double(splits{2}));
         coeff_table{ii,'is_within_100nt_of_tss'} = prefix_annot{idx,'is_within_100nt_of_tss'};
     else
         coeff_table{ii,'tag'} = this_name;
