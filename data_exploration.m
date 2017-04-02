@@ -42,6 +42,26 @@ writetable(annot_table,'~/Documents/mpra/data/prefix_is_from_promoter_annot.txt'
 
 length(unique(mpra_data{:,'dnstream_id'}))
 length(unique(mpra_data{:,'upstream_id'}))
+
+%% Intact pairs
+intact_idx = mpra_data{:,'upstream_region_id'} == mpra_data{:,'dnstream_region_id'};
+normal_idx = mpra_data{:,'upstream_is_reverse'} == 0 & ...
+    mpra_data{:,'dnstream_is_reverse'} == 0 & ...
+    mpra_data{:,'dnstream_addPAS'} == 0 & ...
+    mpra_data{:,'dnstream_delPAS'} == 0 & ...
+    mpra_data{:,'dnstream_addStrongPAS'} == 0 & ...
+    mpra_data{:,'dnstream_num_delU1'} == 0 & ...
+    mpra_data{:,'dnstream_num_addU1'} == 0;
+
+to_use_idx = intact_idx & normal_idx;
+
+wt_100bp_idx = strcmp(mpra_data{:,'upstream_sequence_relation_to_tss'},'wt_100nt');
+
+boxplot(horzcat(mpra_data{to_use_idx & wt_100bp_idx,'P_ratio_avg_rep'},...
+    mpra_data{to_use_idx & ~wt_100bp_idx,'P_ratio_avg_rep'}))
+            
+
+
 % %% Replicate Correlation
 % figure
 % scatter(mpra_data{:,'Rep1_ERatio'},mpra_data{:,'Rep2_ERatio'})

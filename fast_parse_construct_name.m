@@ -14,6 +14,7 @@ cell_var_names = {'oligo_id',...
 array_var_names = {'upstream_is_reverse',...
     'dnstream_is_reverse',...
     'dnstream_addPAS',...
+    'dnstream_delPAS',...
     'dnstream_addStrongPAS',...
     'dnstream_num_delU1',...
     'dnstream_num_addU1'};
@@ -78,9 +79,13 @@ dn_is_reverse_idx = logical(cellfun(@(s) length(s), dn_is_reverse_temp));
 T{dn_is_reverse_idx,'dnstream_is_reverse'} = 1;
 
 %% Part 7 - PAS
-dn_has_pas_temp = cellfun(@(s) strfind(s,'addPAS'),T{:,'dnstream_full_id'},'uni',false);
-dn_has_pas_idx = logical(cellfun(@(s) length(s), dn_has_pas_temp));
-T{dn_has_pas_idx,'dnstream_addPAS'} = 1;
+dn_has_addpas_temp = cellfun(@(s) strfind(s,'addPAS'),T{:,'dnstream_full_id'},'uni',false);
+dn_has_addpas_idx = logical(cellfun(@(s) length(s), dn_has_addpas_temp));
+T{dn_has_addpas_idx,'dnstream_addPAS'} = 1;
+
+dn_has_delpas_temp = cellfun(@(s) strfind(s,'delPAS'),T{:,'dnstream_full_id'},'uni',false);
+dn_has_delpas_idx = logical(cellfun(@(s) length(s), dn_has_delpas_temp));
+T{dn_has_delpas_idx,'dnstream_delPAS'} = 1;
 
 dn_has_strong_pas_temp = cellfun(@(s) strfind(s,'addStrongPAS'),T{:,'dnstream_full_id'},'uni',false);
 dn_has_strong_pas_idx = logical(cellfun(@(s) length(s), dn_has_strong_pas_temp));

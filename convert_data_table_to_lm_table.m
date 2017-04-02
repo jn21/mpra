@@ -16,7 +16,7 @@ num_vars = num_up_id + num_dn_id + 5;
 
 lm_table = array2table(zeros(num_rows,num_vars));
 
-lm_table.Properties.VariableNames = [unique_up_prefix_str' unique_dn_prefix_str' 'addPAS' 'addStrongPAS' 'U1_change' 'E_ratio' 'P_ratio'];
+lm_table.Properties.VariableNames = [unique_up_prefix_str' unique_dn_prefix_str' 'PAS_change' 'addStrongPAS' 'U1_change' 'E_ratio' 'P_ratio'];
 
 for ii = 1:num_up_id
     [~,locb] = ismember(mpra{:,'upstream_prefix'},unique_up_prefix(ii));
@@ -31,7 +31,8 @@ end
 % lm_table{:,'upstream_is_reverse'} = mpra{:,'upstream_is_reverse'};
 % lm_table{:,'dnstream_is_reverse'} = mpra{:,'dnstream_is_reverse'};
 lm_table{:,'U1_change'} = mpra{:,'dnstream_num_addU1'} - mpra{:,'dnstream_num_delU1'};
-lm_table{:,'addPAS'} = mpra{:,'dnstream_addPAS'};
+%lm_table{:,'addPAS'} = mpra{:,'dnstream_addPAS'};
+lm_table{:,'PAS_change'} = mpra{:,'dnstream_addPAS'} - mpra{:,'dnstream_delPAS'};
 lm_table{:,'addStrongPAS'} = mpra{:,'dnstream_addStrongPAS'};
 lm_table{:,'E_ratio'} = mpra{:,'E_ratio_avg_rep'};
 lm_table{:,'P_ratio'} = mpra{:,'P_ratio_avg_rep'};

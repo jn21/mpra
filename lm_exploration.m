@@ -16,8 +16,21 @@ pratio_table.E_ratio = [];
 eratio_table = lm_table; 
 eratio_table.P_ratio = [];
 
-pratio_lm = fitlm(pratio_table,'ResponseVar','P_ratio');
-eratio_lm = fitlm(eratio_table,'ResponseVar','E_ratio');
+% pratio_lm = fitlm(pratio_table,'ResponseVar','P_ratio_avg_rep');
+% eratio_lm = fitlm(eratio_table,'ResponseVar','E_ratio_avg_rep');
+
+%% ANOVA
+[p_anova,anova_tab,anova_stats] = anova1(mpra_data{:,'P_ratio_avg_rep'},...
+    mpra_data{:,'dnstream_full_id'},...
+    'off');
+
+%% Run linear regression with only upstream/dnstream ids
+tag = 'dn';
+tag_idx = strcmp(tag,...
+        cellfun(@(s) s(1:2),pratio_table.Properties.VariableNames,'uni',false));
+pratio_lm_tag = fitlm(pratio_table,...
+    'ResponseVar','P_ratio',...
+    'PredictorVars',pratio_table.Properties.VariableNames(tag_idx));
 
 %% Make coefficients table
 assert(isequal(eratio_lm.Coefficients.Properties.RowNames,pratio_lm.Coefficients.Properties.RowNames),...
@@ -45,6 +58,11 @@ for ii = 1:length(coeff_name)
         coeff_table{ii,'tag'} = this_name;
         coeff_table{ii,'is_within_100nt_of_tss'} = NaN;
     end
+    
+%     if strcmp(splits{end},'reverse')
+%         coeff_table{ii,'is_reverse'} = 1
+        
+    coeff_table{ii,'is_reverse'} = logical(strcmp(splits{end},'reverse'));
      
 end
 
@@ -56,4 +74,34 @@ scatter(eratio_lm.Coefficients{:,'Estimate'},pratio_lm.Coefficients{:,'Estimate'
 xlabel('construct_ratio','Interpreter','none')
 ylabel('GFP_ratio','Interpreter','none')
 
-%% Residuals
+%% Get correlations of coeffs
+up_idx = strcmp(coeff_table{:,'tag'},'up');
+[up_corr, up_pval] = corr(coeff_table{up_idx,'pratio_coeff'},coeff_table{up_idx,'eratio_coeff'})
+
+
+dn_idx = strcmp(coeff_table{:,'tag'},'dn');
+[dn_corr, dn_pval] = corr(coeff_table{dn_idx,'pratio_coeff'},coeff_table{dn_idx,'eratio_coeff'})
+
+%% Examine coefficients for wt_100nt/gt_10kb enrichment
+
+p_or_e_ratio = 'eratio_coeff';
+up_or_dn = 'up';
+
+up_idx = strcmp(coeff_table{:,'tag'},'up');
+dn_idx = strcmp(coeff_table{:,'tag'},'dn');
+is_within_idx = coeff_table{:,'is_within_100nt_of_tss'};
+is_reverse_idx = coeff_table{:,'is_reverse'};
+
+switch up_or_dn
+    case 'up'
+        up_or_dn_idx = up_idx;
+    case 'dn'
+        up_or_dn_idx = dn_idx;
+end
+
+rs = ranksum(coeff_table{up_or_dn_idx & (is_within_idx == 1) & ~is_reverse_idx,p_or_e_ratio},coeff_table{up_or_dn_idx & (is_within_idx == 0) & ~is_reverse_idx,p_or_e_ratio});
+boxplot(coeff_table{up_or_dn_idx,p_or_e_ratio},coeff_table{up_or_dn_idx,'is_within_100nt_of_tss'},...
+    'Labels',{'gt_10kb','wt_100nt'})
+title_str = sprintf('which_barcode = %s, up_or_dn_coeff = %s \n ranksum pval = %.3g',p_or_e_ratio,up_or_dn,rs);
+title(title_str,'Interpreter','none')
+
