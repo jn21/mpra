@@ -3,6 +3,7 @@ function T = fast_parse_construct_name(construct_names)
 
 cell_var_names = {'oligo_id',...
     'construct',...
+    'construct_no_oligo_id',...
     'upstream_full_id',...
     'dnstream_full_id',...
     'upstream_prefix',...
@@ -17,7 +18,7 @@ array_var_names = {'upstream_is_reverse',...
     'dnstream_delPAS',...
     'dnstream_addStrongPAS',...
     'dnstream_num_delU1',...
-    'dnstream_num_addU1'};
+    'dnstream_addU1'};
 
 T1 = cell2table(cell(length(construct_names),length(cell_var_names)));
 T1.Properties.VariableNames = cell_var_names;
@@ -35,6 +36,7 @@ temp = cellfun(@(s) strsplit(s,{':','-'}),construct_names,'uni',false);
 temp = [temp{:}]';
 
 T{:,'oligo_id'} = temp(:,1);
+T{:,'construct_no_oligo_id'} = strcat(temp(:,2),'-',temp(:,3));
 T{:,'upstream_full_id'} = temp(:,2);
 T{:,'dnstream_full_id'} = temp(:,3);
 
@@ -46,7 +48,7 @@ T{:,'upstream_region_id'} = cellfun(@(s) s{1}, up_temp, 'uni', false);
 T{:,'dnstream_region_id'} = cellfun(@(s) s{1}, dn_temp, 'uni', false);
 
 %% Part 4 - remove pas/u1 from id's, but keep reverse
-strings_to_remove = {'_addPAS','_addStrongPAS','_delU1','_addU1'};
+strings_to_remove = {'_addPAS','_addStrongPAS','_delU1','_addU1','_delPAS'};
 dnstream_prefix_temp = temp(:,3);
 
 for ii = 1:length(strings_to_remove)
@@ -94,7 +96,7 @@ T{dn_has_strong_pas_idx,'dnstream_addStrongPAS'} = 1;
 %% Part 8 - U1
 dn_num_add_U1_temp = cellfun(@(s) strfind(s,'addU1'),T{:,'dnstream_full_id'},'uni',false);
 dn_num_add_U1 = cellfun(@(s) length(s), dn_num_add_U1_temp);
-T{:,'dnstream_num_addU1'} = dn_num_add_U1;
+T{:,'dnstream_addU1'} = dn_num_add_U1;
 
 dn_num_del_U1_temp = cellfun(@(s) strfind(s,'delU1'),T{:,'dnstream_full_id'},'uni',false);
 dn_num_del_U1 = cellfun(@(s) length(s), dn_num_del_U1_temp);

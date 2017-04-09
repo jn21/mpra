@@ -82,3 +82,34 @@ boxplot(T{:,'median_p_ratio'},T{:,'relation_to_tss'})
 title('P Barcode Ratio (Enhancer Activity)')
 
 %% Full boxplot
+figure;
+
+%get sort variable to plot reverse sequences first
+temp = cellfun(@(s) strfind(s,'reverse'), unique_upstream_ids, 'uni',false);
+temp2 = cellfun(@(s) length(s), temp);
+[~,sort_idx] = sort(temp2,'descend');
+
+boxplot(mpra_data{:,'E_ratio_avg_rep'},...
+    mpra_data{:,'upstream_full_id'},...
+    'grouporder',unique_upstream_ids(sort_idx),...
+    'outliersize',1,...
+    'symbol','')
+ax = gca;
+ax.XTickLabelRotation = 90;
+title('Promoter activity per Upstream Sequence')
+ylabel('E Barcode Ratio (Promoter Activity)')
+xlabel('Upstream ID')
+
+figure
+boxplot(mpra_data{:,'P_ratio_avg_rep'},...
+    mpra_data{:,'upstream_full_id'},...
+    'grouporder',unique_upstream_ids(sort_idx),...
+    'outliersize',1,...
+    'symbol','')
+ax = gca;
+ax.XTickLabelRotation = 90;
+title('Enhancer activity per Upstream Sequence')
+ylabel('P Barcode Ratio (Enhancer Activity)')
+xlabel('Upstream ID')
+
+end
