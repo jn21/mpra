@@ -1,9 +1,9 @@
 
-activity_type = {'P_ratio_avg_rep','E_ratio_avg_rep'};
+activity_type = {'E_ratio_avg_rep','P_ratio_avg_rep'};
 
 %activity_table = table;
 
-signals = {'delPAS','addPAS','addStrongPAS','addU1'};
+signals = {'addPAS','addStrongPAS','delPAS','addU1'};
 
 for kk = 1:length(activity_type)
     activity_table = table;
@@ -23,25 +23,76 @@ for kk = 1:length(activity_type)
             'VariableNames',{'diff','signal'});
 
         activity_table = vertcat(activity_table,this_table);
+        
+        this_result_str = sprintf([...
+            'n = %d \n',...
+            'median = %.2g \n',...
+            'pval = %.2g'],...
+            length(this_diff),median(this_diff),this_pval);
+        
+        result_struct(ii).signal = signals{ii};
+        result_struct(ii).string = this_result_str;
     end
 
     for jj = 1:3
         [this_diff,this_pval] = explore_delU1_function(activity_type{kk},jj);
 
-        this_table = table(this_diff,repmat({sprintf('delU1x%d',jj)},length(this_diff),1),...
+        temp_str = ['delU1' strjoin(repmat({'_delU1'},1,jj-1),'')];
+        this_signal = repmat({temp_str},length(this_diff),1);
+        
+        this_table = table(this_diff,this_signal,...
             'VariableNames',{'diff','signal'});
 
         activity_table = vertcat(activity_table,this_table);
+        
+        this_result_str = sprintf([...
+            'n = %d \n',...
+            'median = %.2g \n',...
+            'pval = %.2g'],...
+            length(this_diff),median(this_diff),this_pval);
+        
+        result_struct(ii+jj).signal = temp_str;
+        result_struct(ii+jj).string = this_result_str;
+    end
+    
+    switch activity_type{kk}
+        case 'E_ratio_avg_rep'
+            title_str = 'Promoter Activity (Construct Barcode Ratio)';
+            offset = .1;
+        case 'P_ratio_avg_rep'
+            title_str = 'Enhancer Activity (GFP Barcode Ratio)';
+            offset = .025;
     end
 
-    figure
+    f = figure;
+    
+%     label_order = {'addPAS','addStrongPAS','delPAS','delU1','delU1_delU1','delU1_delU1_delU1','addU1'}
+%     {result_struct.signal}
+    label_order = fliplr(1:7);
+    %[~,pos_idx] = ismember({result_struct.signal},label_order);
     boxplot(activity_table{:,'diff'},activity_table{:,'signal'},...
-        'orientation','horizontal')
-    title(activity_type{kk},'Interpreter','None')
-    xlabel('diff')
+        'orientation','horizontal',...
+        'positions',label_order)
+    title(title_str,'Interpreter','None')
+    xlabel('Difference')
     ax = gca;
     hold on
     plot([0 0],ax.YLim, 'k:')
+    %ax.Position = [0 0 .8 1];
+    
+    %ax2 = axes('Position',get(ax,'Position'),'YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
+    ax2 = axes('YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
+
+    linkaxes([ax ax2],'xy')
+    
+    axes(ax2)
+    %offset = .1;
+    %idx = ismember({result_struct.signal},label_order)
+    text(zeros(ii+jj,1)+ax.XLim(2)+offset,ax.YTick,{result_struct(label_order).string})
+    
+    
+%     [hx, hy] = format_ticks(ax2,'',{result_struct.string})
+%     set(hy,'YAxis','Location','right')
 end
 
 
