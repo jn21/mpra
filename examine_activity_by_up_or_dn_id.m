@@ -73,7 +73,11 @@ for ii = 1:length(unique_ids)
     
 end
 
+[~,qval] = mafdr([res.pval]);
+
 T = struct2table(res);
+
+T{:,'qval'} = qval';
 
 %% Anova
 [p_anova,anova_tab,anova_stats] = anova1(mpra_data{:,barcode_type},...
