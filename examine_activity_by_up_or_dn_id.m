@@ -1,4 +1,4 @@
-function T = examine_activity_by_up_or_dn_id(up_or_dn_id,gfp_or_construct_ratio)
+function T = examine_activity_by_up_or_dn_id(up_or_dn_id,gfp_or_construct_ratio,save_plot)
 
 %% Setup variable names
 if strcmp(up_or_dn_id,'up')
@@ -17,10 +17,10 @@ end
 
 if strcmp(gfp_or_construct_ratio,'gfp')
     barcode_type = 'P_ratio_avg_rep';
-    title_str = 'Enhancer Activity (GFP Barcode Ratio)';
+    activity_str = 'Enhancer Activity (GFP Barcode Ratio)';
 elseif strcmp(gfp_or_construct_ratio,'construct')
     barcode_type = 'E_ratio_avg_rep';
-    title_str = 'Promoter Activity (Construct Barcode Ratio)';
+    activity_str = 'Promoter Activity (Construct Barcode Ratio)';
 else
     error('must be either up or dn')
 end
@@ -85,9 +85,16 @@ anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
 %% Plot
 %boxplot
 figure
-subplot(1,2,1)
 boxplot(T{:,'median_ratio'},T{:,'relation_to_tss'})
-title(title_str)
+T_no_reverse = subset_table(T,'is_reverse',0);
+promoter_derived_data = subset_table(T_no_reverse,'relation_to_tss','within_100nt');
+enhancer_derived_data = subset_table(T_no_reverse,'relation_to_tss','gt_10000nt');
+
+pval = ranksum(promoter_derived_data{:,'median_ratio'},enhancer_derived_data{:,'median_ratio'});
+
+title_str = sprintf('%s \n %s \n pval = %.2g',activity_str,id_str,pval);
+
+title(title_str,'Interpreter','none')
 
 %% Full boxplot
 figure;
@@ -101,16 +108,30 @@ boxplot(mpra_data{:,barcode_type},...
     mpra_data{:,id_str},...
     'grouporder',unique_ids(sort_idx),...
     'outliersize',1,...
-    'symbol','')
-ax = gca;
-ax.Box = 'off';
-ax.XTick = [];
-ax.XTickLabel = [];
+    'symbol','r.')
+f = gca;
+f.Box = 'off';
+%ax.XTick = [];
+f.TickLength = [.01 .01];
+f.XTickLabel = ' ';
 
-title_str2 = sprintf('%s \n Variance Explained (ANOVA) = %d %%',...
-    title_str,round(100*anova_var_explained));
-title(title_str2)
-ylabel(title_str)
-xlabel(id_str,'Interpreter','none')
+title_str2 = sprintf('%s \n Group by: %s \n Variance Explained (ANOVA) = %d %%',...
+    activity_str,id_str,round(100*anova_var_explained));
+title(title_str2,'Interpreter','None')
+ylabel(activity_str)
+xlabel(id_str,'Interpreter','none','FontSize',14)
+
+if save_plot
+    fig = gcf;
+    fig.PaperPositionMode = 'auto';
+    fig.Units = 'Normalized';
+    fig.Position = [0 0 1 .65];
+    %fig.OuterPosition = [0 0 1 .65];
+    set(gca, 'LooseInset', [.03 .03 .03 .08]);
+    
+    save_str = sprintf('~/Documents/mpra/fig/up_dn_analysis/anova_%s_%s',...
+        up_or_dn_id,gfp_or_construct_ratio);
+    saveas(fig,save_str,'png')
+end
 
 end

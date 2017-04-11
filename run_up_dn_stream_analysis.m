@@ -1,32 +1,75 @@
+mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 
 %% Run ID analysis for promoter and enhancer activity
-up_gfp = examine_activity_by_up_or_dn_id('up','gfp');
-dn_gfp = examine_activity_by_up_or_dn_id('dn','gfp');
-up_construct = examine_activity_by_up_or_dn_id('up','construct');
-dn_construct = examine_activity_by_up_or_dn_id('dn','construct');
+up_gfp = examine_activity_by_up_or_dn_id('up','gfp',true);
+dn_gfp = examine_activity_by_up_or_dn_id('dn','gfp',true);
+up_construct = examine_activity_by_up_or_dn_id('up','construct',true);
+dn_construct = examine_activity_by_up_or_dn_id('dn','construct',true);
 
-%% Scatter Enhancer and Promoter Activity of UP and DN stream sequences
+%% Scatter E and P activity of all constructs
+bad_idx = mpra_data{:,'dnstream_is_reverse'} |...
+    mpra_data{:,'upstream_is_reverse'} |...
+    mpra_data{:,'dnstream_is_modified'} |...
+    ~isfinite(mpra_data{:,'P_ratio_avg_rep'}) |...
+    ~isfinite(mpra_data{:,'E_ratio_avg_rep'});
+good_mpra_data = mpra_data(~bad_idx,:);
+
+scatter(good_mpra_data{:,'P_ratio_avg_rep'},good_mpra_data{:,'E_ratio_avg_rep'});
+scatter_corr = corr(good_mpra_data{:,'P_ratio_avg_rep'},good_mpra_data{:,'E_ratio_avg_rep'});
+
+xlabel('Enhancer Activity')
+ylabel('Promoter Activity')
+title_str = sprintf('All non-Modified Constructs \n correlation = %.2f',scatter_corr);
+title(title_str)
+saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/global_ep_scatter','png')
+
+%% Scatter Enhancer and Promoter Activity of Median UP and DN stream sequences
+up_gfp_no_rev = subset_table(up_gfp,'is_reverse',0);
+dn_gfp_no_rev = subset_table(dn_gfp,'is_reverse',0);
+up_construct_no_rev = subset_table(up_construct,'is_reverse',0);
+dn_construct_no_rev = subset_table(dn_construct,'is_reverse',0);
+
 figure
-scatter(up_gfp{:,'median_ratio'},up_construct{:,'median_ratio'})
-hold on
-ax = gca;
-plot([up_gfp{1,'neg_control_median_ratio'} up_gfp{1,'neg_control_median_ratio'}], ax.YLim, 'r:')
-hold on
-plot(ax.XLim, [up_construct{1,'neg_control_median_ratio'} up_construct{1,'neg_control_median_ratio'}], 'r:')
+scatter(up_gfp_no_rev{:,'median_ratio'},up_construct_no_rev{:,'median_ratio'})
+scatter_corr = corr(up_gfp_no_rev{:,'median_ratio'},up_construct_no_rev{:,'median_ratio'});
+% hold on
+% ax = gca;
+% plot([up_gfp{1,'neg_control_median_ratio'} up_gfp{1,'neg_control_median_ratio'}], ax.YLim, 'r:')
+% hold on
+% plot(ax.XLim, [up_construct{1,'neg_control_median_ratio'} up_construct{1,'neg_control_median_ratio'}], 'r:')
 xlabel('Median Enhancer Activity')
 ylabel('Median Promoter Activity')
-title('Upstream Sequences')
+title_str = sprintf('Upstream Sequences - Medians \n correlation = %.2f',scatter_corr);
+title(title_str)
+saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/up_ep_median_scatter','png')
 
 figure
-scatter(dn_gfp{:,'median_ratio'},dn_construct{:,'median_ratio'})
-hold on
-ax = gca;
-plot([dn_gfp{1,'neg_control_median_ratio'} dn_gfp{1,'neg_control_median_ratio'}], ax.YLim, 'r:')
-hold on
-plot(ax.XLim, [dn_construct{1,'neg_control_median_ratio'} dn_construct{1,'neg_control_median_ratio'}], 'r:')
+scatter(dn_gfp_no_rev{:,'median_ratio'},dn_construct_no_rev{:,'median_ratio'})
+scatter_corr = corr(dn_gfp_no_rev{:,'median_ratio'},dn_construct_no_rev{:,'median_ratio'});
+% hold on
+% ax = gca;
+% plot([dn_gfp{1,'neg_control_median_ratio'} dn_gfp{1,'neg_control_median_ratio'}], ax.YLim, 'r:')
+% hold on
+% plot(ax.XLim, [dn_construct{1,'neg_control_median_ratio'} dn_construct{1,'neg_control_median_ratio'}], 'r:')
 xlabel('Median Enhancer Activity')
 ylabel('Median Promoter Activity')
-title('Downstream Sequences')
+title_str = sprintf('Downstream Sequences - Medians \n correlation = %.2f',scatter_corr);
+title(title_str)
+saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/dn_ep_median_scatter','png')
+
+%%
+% figure
+% gscatter([up_gfp{:,'median_ratio'}; dn_gfp{:,'median_ratio'}],...
+%     [up_construct{:,'median_ratio'}; dn_construct{:,'median_ratio'}],...
+%     [repmat('upstream',height(up_gfp),1); repmat('dnstream',height(dn_gfp),1)])
+% hold on
+% % ax = gca;
+% % plot([up_gfp{1,'neg_control_median_ratio'} up_gfp{1,'neg_control_median_ratio'}], ax.YLim, 'r:')
+% % hold on
+% % plot(ax.XLim, [up_construct{1,'neg_control_median_ratio'} up_construct{1,'neg_control_median_ratio'}], 'r:')
+% xlabel('Median Enhancer Activity')
+% ylabel('Median Promoter Activity')
+% %title('Upstream Sequences')
 
 %% Promoter Activty / Enhancer Activity
 data = up_construct{:,'median_ratio'} ./ up_gfp{:,'median_ratio'};

@@ -1,4 +1,4 @@
-function explore_dnstream_sequence_signal(signal,e_or_p_ratio,remove_reverse,save_fig)
+function [diff_data,pval] = explore_dnstream_sequence_signal(activity_type,signal,remove_reverse)
 %
 % Input
 %       signal: (string) field from mpra_data_table: Eg dnstream_addPAS
@@ -29,9 +29,9 @@ for ii = 1:length(signal_dnstream_ids)
     temp_corr_table = subset_table(mpra_data,'dnstream_full_id',corresponding_dnstream_ids{ii});
     
     % remove infinite rows
-    signal_is_finite_idx = isfinite(temp_signal_table{:,e_or_p_ratio});
+    signal_is_finite_idx = isfinite(temp_signal_table{:,activity_type});
     temp_signal_table = temp_signal_table(signal_is_finite_idx,:);
-    corr_is_finite_idx = isfinite(temp_corr_table{:,e_or_p_ratio});
+    corr_is_finite_idx = isfinite(temp_corr_table{:,activity_type});
     temp_corr_table = temp_corr_table(corr_is_finite_idx,:);
     
     %subset to common upstream ids
@@ -50,62 +50,65 @@ for ii = 1:length(signal_dnstream_ids)
         'error - ids not equal');
 end
 
-switch e_or_p_ratio
-    case 'E_ratio_avg_rep'
-        e_or_p_ratio_str = 'Promoter Activity (E Barcode Ratio)';
-    case 'P_ratio_avg_rep'
-        e_or_p_ratio_str = 'Enhancer Activity (P Barcode Ratio)';
-end
+diff_data = full_signal_table{:,activity_type} - full_corr_table{:,activity_type};
+pval = signrank(diff_data);
 
-f = figure;
-set(f,'Units','normalized')
-set(f,'Position',[0 0 1 1])
-subplot(2,2,1)
-scatter(full_corr_table{:,e_or_p_ratio},full_signal_table{:,e_or_p_ratio})
-xlabel('no_signal','Interpreter','None')
-ylabel(signal,'Interpreter','None')
-%title(e_or_p_ratio,'Interpreter','None')
-ax = gca;
-max_lim = max([ax.XLim ax.YLim]);
-min_lim = min([ax.XLim ax.YLim]);
-grid on
+% switch e_or_p_ratio
+%     case 'E_ratio_avg_rep'
+%         e_or_p_ratio_str = 'Promoter Activity (E Barcode Ratio)';
+%     case 'P_ratio_avg_rep'
+%         e_or_p_ratio_str = 'Enhancer Activity (P Barcode Ratio)';
+% end
 
-ax.XLim = [min_lim max_lim];
-ax.YLim = [min_lim max_lim];
-hold on
-plot([min_lim max_lim], [min_lim max_lim], 'r:')
-
-subplot(2,2,2)
-boxplot([full_signal_table{:,e_or_p_ratio} full_corr_table{:,e_or_p_ratio}],...
-    'labels',{signal,'no_signal'})
-ylabel(e_or_p_ratio_str)
-grid on
-
-[pval,~,~] = signrank(full_signal_table{:,e_or_p_ratio},full_corr_table{:,e_or_p_ratio});
-
-subplot(2,2,3)
-data = full_signal_table{:,e_or_p_ratio} - full_corr_table{:,e_or_p_ratio};
-med_data = median(data);
-histogram(data,...
-    'BinWidth',.1)
-hold on
-ax = gca;
-plot([med_data med_data], [0 ax.YLim(2)])
-xlabel([signal ' - no_signal'],'Interpreter','None')
-ylabel('histogram')
-
-title_str = sprintf(['%s \n',...
-    '%s \n',...
-    '%d constructs \n',...
-    'median absolute difference = %.2g \n', ...
-    'sign rank pvalue = %.2g'],...
-    signal,e_or_p_ratio_str,length(data),med_data,pval);
-suptitle(title_str)
-
-if save_fig
-    saveas(f,fullfile('~/Documents/mpra/fig/dnstream_signal/',[signal '_' e_or_p_ratio]),'png');
-    %print(f,'-r0','-dpng',fullfile('~/Documents/mpra/fig/dnstream_signal/',[signal '_' e_or_p_ratio]))
-end
+% f = figure;
+% set(f,'Units','normalized')
+% set(f,'Position',[0 0 1 1])
+% subplot(2,2,1)
+% scatter(full_corr_table{:,e_or_p_ratio},full_signal_table{:,e_or_p_ratio})
+% xlabel('no_signal','Interpreter','None')
+% ylabel(signal,'Interpreter','None')
+% %title(e_or_p_ratio,'Interpreter','None')
+% ax = gca;
+% max_lim = max([ax.XLim ax.YLim]);
+% min_lim = min([ax.XLim ax.YLim]);
+% grid on
+% 
+% ax.XLim = [min_lim max_lim];
+% ax.YLim = [min_lim max_lim];
+% hold on
+% plot([min_lim max_lim], [min_lim max_lim], 'r:')
+% 
+% subplot(2,2,2)
+% boxplot([full_signal_table{:,e_or_p_ratio} full_corr_table{:,e_or_p_ratio}],...
+%     'labels',{signal,'no_signal'})
+% ylabel(e_or_p_ratio_str)
+% grid on
+% 
+% [pval,~,~] = signrank(full_signal_table{:,e_or_p_ratio},full_corr_table{:,e_or_p_ratio});
+% 
+% subplot(2,2,3)
+% data = full_signal_table{:,e_or_p_ratio} - full_corr_table{:,e_or_p_ratio};
+% med_data = median(data);
+% histogram(data,...
+%     'BinWidth',.1)
+% hold on
+% ax = gca;
+% plot([med_data med_data], [0 ax.YLim(2)])
+% xlabel([signal ' - no_signal'],'Interpreter','None')
+% ylabel('histogram')
+% 
+% title_str = sprintf(['%s \n',...
+%     '%s \n',...
+%     '%d constructs \n',...
+%     'median absolute difference = %.2g \n', ...
+%     'sign rank pvalue = %.2g'],...
+%     signal,e_or_p_ratio_str,length(data),med_data,pval);
+% suptitle(title_str)
+% 
+% if save_fig
+%     saveas(f,fullfile('~/Documents/mpra/fig/dnstream_signal/',[signal '_' e_or_p_ratio]),'png');
+%     %print(f,'-r0','-dpng',fullfile('~/Documents/mpra/fig/dnstream_signal/',[signal '_' e_or_p_ratio]))
+% end
 
 end
 
