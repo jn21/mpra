@@ -86,9 +86,9 @@ T{:,'qval'} = qval';
 anova_table = cell2table(anova_tab);
 anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
 
-%% Plot
+%% Boxplot - medians by promoter/enhancer derived
 %boxplot
-figure
+bar_fig = figure;
 boxplot(T{:,'median_ratio'},T{:,'relation_to_tss'})
 T_no_reverse = subset_table(T,'is_reverse',0);
 promoter_derived_data = subset_table(T_no_reverse,'relation_to_tss','within_100nt');
@@ -100,13 +100,32 @@ title_str = sprintf('%s \n %s \n pval = %.2g',activity_str,id_str,pval);
 
 title(title_str,'Interpreter','none')
 
-%% Full boxplot
-figure;
+
+bar_fig.PaperPositionMode = 'auto';
+bar_fig.Units = 'Normalized';
+bar_fig.Position = [0 0 .25 .6];
+%fig.OuterPosition = [0 0 1 .65];
+%set(gca, 'LooseInset', [.03 .03 .03 .08]);
+
+if save_plot
+    save_str = sprintf('~/Documents/mpra/fig/up_dn_analysis/bar_%s_%s',...
+        up_or_dn_id,gfp_or_construct_ratio);
+    saveas(bar_fig,save_str,'png')
+end
+
+
+%% Full boxplot - ANOVA
+anova_fig = figure;
 
 %get sort variable to plot reverse sequences first
-temp = cellfun(@(s) strfind(s,'reverse'), unique_ids, 'uni',false);
-temp2 = cellfun(@(s) length(s), temp);
-[~,sort_idx] = sort(temp2,'descend');
+reverse_temp = cellfun(@(s) strfind(s,'reverse'), unique_ids, 'uni',false);
+prom_derived_temp = cellfun(@(s) strfind(s,'gt'), unique_ids, 'uni',false);
+reverse_temp2 = cellfun(@(s) length(s), reverse_temp);
+prom_derived_temp2 = cellfun(@(s) length(s), prom_derived_temp);
+
+[reverse_temp2, prom_derived_temp2]
+
+[~,sort_idx] = sortrows([reverse_temp2, prom_derived_temp2],[-1 2]);
 
 boxplot(mpra_data{:,barcode_type},...
     mpra_data{:,id_str},...
@@ -117,25 +136,25 @@ f = gca;
 f.Box = 'off';
 %ax.XTick = [];
 f.TickLength = [.01 .01];
-f.XTickLabel = ' ';
+f.XTickLabelRotation = 90;
+%f.XTickLabel = ' ';
 
 title_str2 = sprintf('%s \n Group by: %s \n Variance Explained (ANOVA) = %d %%',...
     activity_str,id_str,round(100*anova_var_explained));
-title(title_str2,'Interpreter','None')
-ylabel(activity_str)
-xlabel(id_str,'Interpreter','none','FontSize',14)
+title(title_str2,'Interpreter','None','FontSize',15)
+ylabel(activity_str,'FontSize',15)
+xlabel(id_str,'Interpreter','none','FontSize',15)
 
-if save_plot
-    fig = gcf;
-    fig.PaperPositionMode = 'auto';
-    fig.Units = 'Normalized';
-    fig.Position = [0 0 1 .65];
-    %fig.OuterPosition = [0 0 1 .65];
-    set(gca, 'LooseInset', [.03 .03 .03 .08]);
+anova_fig.PaperPositionMode = 'auto';
+anova_fig.Units = 'Normalized';
+anova_fig.Position = [0 0 1 .65];
+%fig.OuterPosition = [0 0 1 .65];
+set(gca, 'LooseInset', [.03 .03 .03 .08]);
     
+if save_plot
     save_str = sprintf('~/Documents/mpra/fig/up_dn_analysis/anova_%s_%s',...
         up_or_dn_id,gfp_or_construct_ratio);
-    saveas(fig,save_str,'png')
+    saveas(anova_fig,save_str,'png')
 end
 
 end

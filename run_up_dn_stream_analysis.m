@@ -42,7 +42,7 @@ xlabel('Median Enhancer Activity')
 ylabel('Median Promoter Activity')
 title_str = sprintf('Upstream Sequences - Medians \n correlation = %.2f',scatter_corr);
 title(title_str)
-saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/up_ep_median_scatter','png')
+%saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/up_ep_median_scatter','png')
 
 figure
 scatter(dn_gfp_no_rev{:,'median_ratio'},dn_construct_no_rev{:,'median_ratio'})
@@ -56,7 +56,7 @@ xlabel('Median Enhancer Activity')
 ylabel('Median Promoter Activity')
 title_str = sprintf('Downstream Sequences - Medians \n correlation = %.2f',scatter_corr);
 title(title_str)
-saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/dn_ep_median_scatter','png')
+%saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/dn_ep_median_scatter','png')
 
 %% FDR 
 fdr_cutoff = .1;
@@ -95,6 +95,18 @@ gscatter(up_gfp_no_reverse{:, 'median_ratio'}, dn_gfp_no_reverse{:, 'median_rati
 xlabel('Upstream Sequence')
 ylabel('Downstream Sequence')
 title('Enhancer Activity (GFP Barcode Ratio)')
+ax = gca;
+max_lim = max([ax.XLim ax.YLim]);
+min_lim = min([ax.XLim ax.YLim]);
+
+ax.XLim = [min_lim max_lim];
+ax.YLim = [min_lim max_lim];
+hold on
+plot([min_lim max_lim],[min_lim max_lim],'r:')
+l = legend;
+set(l, 'Interpreter', 'None')
+grid on
+saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/enhancer_activity_scatter_by_region','png')
 
 %% Promoter Activity by region ID
 up_construct_no_reverse = subset_table(up_construct,'is_reverse',0);
@@ -108,3 +120,15 @@ gscatter(up_construct_no_reverse{:,'median_ratio'},dn_construct_no_reverse{:,'me
 xlabel('Upstream Sequence')
 ylabel('Downstream Sequence')
 title('Promoter Activity (Construct Barcode Ratio)')
+ax = gca;
+max_lim = max([ax.XLim ax.YLim]);
+min_lim = min([ax.XLim ax.YLim]);
+
+ax.XLim = [min_lim max_lim];
+ax.YLim = [min_lim max_lim];
+hold on
+plot([min_lim max_lim],[min_lim max_lim],'r:')
+l = legend;
+set(l, 'Interpreter', 'None')
+grid on
+saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/promoter_activity_scatter_by_region','png')

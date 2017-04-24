@@ -2,10 +2,14 @@ mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt'
 prefix_annot = readtable('~/Documents/mpra/data/prefix_is_from_promoter_annot.txt','Delimiter','\t');
 
 %% Remove some low 'E' count entries
-CUTOFF = 20;
-rep1_idx = (mpra_data{:,'Rep1_ETotal'} < CUTOFF);
-rep2_idx = (mpra_data{:,'Rep2_ETotal'} < CUTOFF);
-mpra_data = mpra_data(~(rep1_idx | rep2_idx),:);
+% CUTOFF = 20;
+% rep1_idx = (mpra_data{:,'Rep1_ETotal'} < CUTOFF);
+% rep2_idx = (mpra_data{:,'Rep2_ETotal'} < CUTOFF);
+% mpra_data = mpra_data(~(rep1_idx | rep2_idx),:);
+
+%% Remove non-finite entries
+idx = isfinite(mpra_data{:,'P_ratio_avg_rep'}) & isfinite(mpra_data{:,'E_ratio_avg_rep'});
+mpra_data = mpra_data(idx,:);
 
 %% Linear regression
 lm_table = convert_data_table_to_lm_table(mpra_data);
@@ -16,21 +20,48 @@ pratio_table.E_ratio = [];
 eratio_table = lm_table; 
 eratio_table.P_ratio = [];
 
-% pratio_lm = fitlm(pratio_table,'ResponseVar','P_ratio_avg_rep');
-% eratio_lm = fitlm(eratio_table,'ResponseVar','E_ratio_avg_rep');
+% pratio_lm = fitlm(pratio_table,'ResponseVar','P_ratio');
+% eratio_lm = fitlm(eratio_table,'ResponseVar','E_ratio');
 
 %% ANOVA
-[p_anova,anova_tab,anova_stats] = anova1(mpra_data{:,'P_ratio_avg_rep'},...
+[p_anova,anova_tab,anova_stats] = anova1(mpra_data{:,'E_ratio_avg_rep'},...
     mpra_data{:,'dnstream_full_id'},...
     'off');
 
 %% Run linear regression with only upstream/dnstream ids
-tag = 'dn';
-tag_idx = strcmp(tag,...
-        cellfun(@(s) s(1:2),pratio_table.Properties.VariableNames,'uni',false));
-pratio_lm_tag = fitlm(pratio_table,...
-    'ResponseVar','P_ratio',...
-    'PredictorVars',pratio_table.Properties.VariableNames(tag_idx));
+% tag = 'up';
+% tag_idx = strcmp(tag,...
+%         cellfun(@(s) s(1:2),pratio_table.Properties.VariableNames,'uni',false));
+% pratio_lm_tag = fitlm(pratio_table,...
+%     'ResponseVar','P_ratio',...
+%     'PredictorVars',pratio_table.Properties.VariableNames(tag_idx),...
+%     'Intercept',false);
+
+[lm_table, mpra_table_for_lm] = convert_data_table_to_lm_table(mpra_data,true);
+enhancer_activity = lm_table;
+enhancer_activity.E_ratio = [];
+promoter_activity = lm_table;
+promoter_activity.P_ratio = [];
+
+promoter_activity_lm = fitlm(promoter_activity,...
+            'ResponseVar','E_ratio');
+        
+enhancer_activity_lm = fitlm(enhancer_activity,...
+    'ResponseVar','P_ratio');
+
+%%
+figure
+subplot(1,2,1)
+boxplot(promoter_activity_lm.Residuals{:,'Raw'},mpra_table_for_lm{:,'is_intact_sequence'})
+title('Promoter Activity')
+grid on
+
+subplot(1,2,2)
+boxplot(enhancer_activity_lm.Residuals{:,'Raw'},mpra_table_for_lm{:,'is_intact_sequence'})
+title('Enhancer Activity')
+grid on
+
+
 
 %% Make coefficients table
 assert(isequal(eratio_lm.Coefficients.Properties.RowNames,pratio_lm.Coefficients.Properties.RowNames),...
