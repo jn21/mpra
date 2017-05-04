@@ -5,8 +5,8 @@
 mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 
 %Get indices of constructs with add strong PAS annotation
-strong_pas_idx = logical(mpra_data{:,'dnstream_addStrongPAS'});
-%strong_pas_idx = logical(mpra_data{:,'dnstream_num_delU1'});
+%strong_pas_idx = logical(mpra_data{:,'dnstream_addStrongPAS'});
+strong_pas_idx = logical(mpra_data{:,'dnstream_num_delU1'});
 %strong_pas_idx = logical(mpra_data{:,'dnstream_num_addU1'});
 %strong_pas_idx = logical(mpra_data{:,'dnstream_addPAS'});
 %strong_pas_idx = logical(mpra_data{:,'dnstream_delPAS'});
@@ -15,10 +15,10 @@ add_strong_pas_dnstream_ids = unique(mpra_data{strong_pas_idx,'dnstream_full_id'
 
 %funny hack to get the corresponding dnstream id without addStrongPAS. Just
 %delete '_addStrongPAS' from the dnstream_id
- corresponding_dnstream_ids = cellfun(@(s) strrep(s,'_addStrongPAS',''),add_strong_pas_dnstream_ids,...
-     'Uni',false);
-% corresponding_dnstream_ids = cellfun(@(s) strrep(s,'_delU1',''),add_strong_pas_dnstream_ids,...
-%     'Uni',false);
+%  corresponding_dnstream_ids = cellfun(@(s) strrep(s,'_addStrongPAS',''),add_strong_pas_dnstream_ids,...
+%      'Uni',false);
+corresponding_dnstream_ids = cellfun(@(s) strrep(s,'_delU1',''),add_strong_pas_dnstream_ids,...
+    'Uni',false);
 % corresponding_dnstream_ids = cellfun(@(s) strrep(s,'_addU1',''),add_strong_pas_dnstream_ids,...
 %     'Uni',false);
 % corresponding_dnstream_ids = cellfun(@(s) strrep(s,'_addPAS',''),add_strong_pas_dnstream_ids,...

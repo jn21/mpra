@@ -1,4 +1,4 @@
-function [diff_data,pval] = explore_delU1_function(activity_type,num_del_u1)
+function res = explore_delU1_function(activity_type,num_del_u1)
 
 mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 
@@ -26,7 +26,14 @@ zero_del_correspond_to_U1_del = sortrows(zero_del_correspond_to_U1_del,{'dnstrea
 U1_del = sortrows(U1_del,{'dnstream_full_id','upstream_full_id'});
 
 diff_data = U1_del{:,activity_type} - zero_del_correspond_to_U1_del{:,activity_type};
+up_ids = U1_del{:,'upstream_full_id'};
+dn_ids = U1_del{:,'dnstream_full_id'};
 pval = signrank(diff_data);
+
+res = struct('diff_data',diff_data,...
+    'up_ids',up_ids,...
+    'dn_ids',dn_ids,...
+    'pval',pval);
 
 %     size(zero_del_correspond_to_U1_del)
 %     size(U1_del)

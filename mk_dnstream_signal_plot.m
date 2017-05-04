@@ -8,6 +8,15 @@ signals = {'addPAS','addStrongPAS','delPAS','addU1'};
 for kk = 1:length(activity_type)
     activity_table = table;
     
+    switch activity_type{kk}
+        case 'E_ratio_avg_rep'
+            title_str = 'Promoter Activity';
+            offset = .1;
+        case 'P_ratio_avg_rep'
+            title_str = 'Enhancer Activity';
+            offset = .025;
+    end
+    
     for ii = 1:length(signals)
         if strcmp(signals{ii},'addStrongPAS')
             remove_reverse = false;
@@ -15,30 +24,51 @@ for kk = 1:length(activity_type)
             remove_reverse = true;
         end
 
-        [this_diff,this_pval] = explore_dnstream_sequence_signal(activity_type{kk},signals{ii},remove_reverse);
+        %[this_diff,this_pval] = explore_dnstream_sequence_signal(activity_type{kk},signals{ii},remove_reverse);
+        res = explore_dnstream_sequence_signal(activity_type{kk},signals{ii},remove_reverse);
 
         %this_struct = struct('diff_data',this_diff,'signal',repmat(signals(ii),1,length(this_diff)));
 
+        this_diff = res(1).diff_data;
         this_table = table(this_diff,repmat(signals(ii),length(this_diff),1),...
             'VariableNames',{'diff','signal'});
 
+        figure
+        boxplot(this_diff,{res.dn_ids})
+        title(sprintf('%s - %s',title_str,signals{ii}),'Interpreter','none')
+        ax = gca;
+        ax.XTickLabels = '';
+        ylabel('diff')
+        xlabel('dnstream_id')
+        
         activity_table = vertcat(activity_table,this_table);
         
         this_result_str = sprintf([...
             'n = %d \n',...
             'median = %.2g \n',...
             'pval = %.2g'],...
-            length(this_diff),median(this_diff),this_pval);
+            length(this_diff),median(this_diff),res(1).pval);
         
         result_struct(ii).signal = signals{ii};
         result_struct(ii).string = this_result_str;
     end
 
+    %U1 Deletions
     for jj = 1:3
-        [this_diff,this_pval] = explore_delU1_function(activity_type{kk},jj);
+        %[this_diff,this_pval] = explore_delU1_function(activity_type{kk},jj);
+        res = explore_delU1_function(activity_type{kk},jj);
+        this_diff = res(1).diff_data;
 
         temp_str = ['delU1' strjoin(repmat({'_delU1'},1,jj-1),'')];
         this_signal = repmat({temp_str},length(this_diff),1);
+        
+        figure
+        boxplot(this_diff,{res.dn_ids})
+        title(sprintf('%s - %s',title_str,this_signal{1}),'Interpreter','none')
+        ax = gca;
+        ax.XTickLabels = '';
+        ylabel('diff')
+        xlabel('dnstream_id')
         
         this_table = table(this_diff,this_signal,...
             'VariableNames',{'diff','signal'});
@@ -49,19 +79,10 @@ for kk = 1:length(activity_type)
             'n = %d \n',...
             'median = %.2g \n',...
             'pval = %.2g'],...
-            length(this_diff),median(this_diff),this_pval);
+            length(this_diff),median(this_diff),res(1).pval);
         
         result_struct(ii+jj).signal = temp_str;
         result_struct(ii+jj).string = this_result_str;
-    end
-    
-    switch activity_type{kk}
-        case 'E_ratio_avg_rep'
-            title_str = 'Promoter Activity (Construct Barcode Ratio)';
-            offset = .1;
-        case 'P_ratio_avg_rep'
-            title_str = 'Enhancer Activity (GFP Barcode Ratio)';
-            offset = .025;
     end
 
     f = figure;
@@ -75,19 +96,21 @@ for kk = 1:length(activity_type)
         'positions',label_order)
     title(title_str,'Interpreter','None')
     xlabel('Difference')
-    ax = gca;
+    ax = gca
     hold on
     plot([0 0],ax.YLim, 'k:')
     %ax.Position = [0 0 .8 1];
     
     %ax2 = axes('Position',get(ax,'Position'),'YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
-    ax2 = axes('YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
+    ax2 = axes('YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','')
 
     linkaxes([ax ax2],'xy')
     
     axes(ax2)
     %offset = .1;
     %idx = ismember({result_struct.signal},label_order)
+    disp('hello')
+    {result_struct(label_order).string}
     text(zeros(ii+jj,1)+ax.XLim(2)+offset,ax.YTick,{result_struct(label_order).string})
     
     

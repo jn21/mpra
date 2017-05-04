@@ -1,8 +1,8 @@
-function [diff_data,pval] = explore_dnstream_sequence_signal(activity_type,signal,remove_reverse)
+function res = explore_dnstream_sequence_signal(activity_type,signal,remove_reverse)
 %
 % Input
 %       signal: (string) field from mpra_data_table: Eg dnstream_addPAS
-%       e_or_p_ratio: (string) which ratio to explore ('E_ratio_avg_rep' or
+%       activity_type: (string) which ratio to explore ('E_ratio_avg_rep' or
 %           'P_ratio_avg_rep')
 %       remove_reverse = (boolean) remove reverse constructs
 
@@ -51,7 +51,14 @@ for ii = 1:length(signal_dnstream_ids)
 end
 
 diff_data = full_signal_table{:,activity_type} - full_corr_table{:,activity_type};
+up_ids = full_signal_table{:,'upstream_full_id'};
+dn_ids = full_signal_table{:,'dnstream_full_id'};
 pval = signrank(diff_data);
+
+res = struct('diff_data',diff_data,...
+    'up_ids',up_ids,...
+    'dn_ids',dn_ids,...
+    'pval',pval);
 
 % switch e_or_p_ratio
 %     case 'E_ratio_avg_rep'
