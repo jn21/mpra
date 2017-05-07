@@ -2,7 +2,7 @@ mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt'
 
 %% Run ID analysis for promoter and enhancer activity
 save_fig = false;
-up_gfp = examine_activity_by_up_or_dn_id('up','gfp',save_fig);
+up_gfp = examine_activity_by_up_or_dn_id('up','enhancer',save_fig);
 dn_gfp = examine_activity_by_up_or_dn_id('dn','gfp',save_fig);
 up_construct = examine_activity_by_up_or_dn_id('up','construct',save_fig);
 dn_construct = examine_activity_by_up_or_dn_id('dn','construct',save_fig);
@@ -11,18 +11,18 @@ dn_construct = examine_activity_by_up_or_dn_id('dn','construct',save_fig);
 bad_idx = mpra_data{:,'dnstream_is_reverse'} |...
     mpra_data{:,'upstream_is_reverse'} |...
     mpra_data{:,'dnstream_is_modified'} |...
-    ~isfinite(mpra_data{:,'P_ratio_avg_rep'}) |...
-    ~isfinite(mpra_data{:,'E_ratio_avg_rep'});
+    ~isfinite(mpra_data{:,'enhancer_activity'}) |...
+    ~isfinite(mpra_data{:,'promoter_activity'});
 good_mpra_data = mpra_data(~bad_idx,:);
 
-scatter(good_mpra_data{:,'P_ratio_avg_rep'},good_mpra_data{:,'E_ratio_avg_rep'});
-scatter_corr = corr(good_mpra_data{:,'P_ratio_avg_rep'},good_mpra_data{:,'E_ratio_avg_rep'});
+scatter(good_mpra_data{:,'enhancer_activity'},good_mpra_data{:,'promoter_activity'});
+scatter_corr = corr(good_mpra_data{:,'enhancer_activity'},good_mpra_data{:,'promoter_activity'});
 
 xlabel('Enhancer Activity')
 ylabel('Promoter Activity')
 title_str = sprintf('All non-Modified Constructs \n correlation = %.2f',scatter_corr);
 title(title_str)
-saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/global_ep_scatter','png')
+%saveas(gcf,'~/Documents/mpra/fig/up_dn_analysis/global_ep_scatter','png')
 
 %% Scatter Enhancer and Promoter Activity of Median UP and DN stream sequences
 up_gfp_no_rev = subset_table(up_gfp,'is_reverse',0);

@@ -1,4 +1,4 @@
-function T = examine_activity_by_up_or_dn_id(up_or_dn_id,gfp_or_construct_ratio,save_plot)
+function T = examine_activity_by_up_or_dn_id(up_or_dn_id,activity_type,save_plot)
 
 %% Setup variable names
 if strcmp(up_or_dn_id,'up')
@@ -15,12 +15,12 @@ else
     error('must be either up or dn')
 end
 
-if strcmp(gfp_or_construct_ratio,'gfp')
-    barcode_type = 'P_ratio_avg_rep';
-    activity_str = 'Enhancer Activity (GFP Barcode Ratio)';
-elseif strcmp(gfp_or_construct_ratio,'construct')
-    barcode_type = 'E_ratio_avg_rep';
-    activity_str = 'Promoter Activity (Construct Barcode Ratio)';
+if strcmp(activity_type,'enhancer_activity')
+    %activity_type = 'P_ratio_avg_rep';
+    activity_str = 'Enhancer Activity';
+elseif strcmp(activity_type,'promoter_activity')
+    %activity_type = 'E_ratio_avg_rep';
+    activity_str = 'Promoter Activity';
 else
     error('must be either up or dn')
 end
@@ -30,7 +30,7 @@ res = struct;
 %% Load and subset data
 mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 mpra_data = mpra_data(~mpra_data{:,'dnstream_is_modified'},:);
-isfinite_idx = isfinite(mpra_data{:,barcode_type});
+isfinite_idx = isfinite(mpra_data{:,activity_type});
 mpra_data = mpra_data(isfinite_idx,:);
 
 %% Build null distribution
@@ -54,8 +54,8 @@ for ii = 1:length(unique_ids)
     this_null_table = subset_table(null_table,other_id_str,common_dnstream_ids);
     
     %test
-    pval = ranksum(this_table{:,barcode_type},...
-        this_null_table{:,barcode_type},...
+    pval = ranksum(this_table{:,activity_type},...
+        this_null_table{:,activity_type},...
         'tail','right');
     
     %get relation to tss
@@ -67,8 +67,8 @@ for ii = 1:length(unique_ids)
     res(ii).relation_to_tss = relation_to_tss{1};
     res(ii).is_reverse = this_table{1,reverse_str};
     res(ii).region_id = this_table{1,region_str};
-    res(ii).median_ratio = median(this_table{:,barcode_type});
-    res(ii).neg_control_median_ratio = median(null_table{:,barcode_type});
+    res(ii).median_ratio = median(this_table{:,activity_type});
+    res(ii).neg_control_median_ratio = median(null_table{:,activity_type});
     res(ii).pval = pval;
     
 end
@@ -80,7 +80,7 @@ T = struct2table(res);
 T{:,'qval'} = qval';
 
 %% Anova
-[p_anova,anova_tab,anova_stats] = anova1(mpra_data{:,barcode_type},...
+[p_anova,anova_tab,anova_stats] = anova1(mpra_data{:,activity_type},...
     mpra_data{:,id_str},...
     'off');
 anova_table = cell2table(anova_tab);
@@ -127,7 +127,7 @@ prom_derived_temp2 = cellfun(@(s) length(s), prom_derived_temp);
 
 [~,sort_idx] = sortrows([reverse_temp2, prom_derived_temp2],[-1 2]);
 
-boxplot(mpra_data{:,barcode_type},...
+boxplot(mpra_data{:,activity_type},...
     mpra_data{:,id_str},...
     'grouporder',unique_ids(sort_idx),...
     'outliersize',1,...

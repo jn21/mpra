@@ -22,21 +22,26 @@ enhancer_activity_lm = fitlm(enhancer_activity,...
 %% Make Plots Comparing Residuals
 same_region_idx = logical(mpra_table_for_lm{:,'is_intact_sequence'});
 promoter_derived_idx = strcmp(mpra_table_for_lm{:,'upstream_sequence_relation_to_tss'},'wt_100nt');
+
+%group_idx
+% 1 : different region
+% 2 : same region - enhancer derived
+% 3 : same region - promoter derived
 group_idx = 1 + same_region_idx .* (1 + promoter_derived_idx);
 
 pval_promoter_12 = ranksum(promoter_activity_lm.Residuals{group_idx == 1,'Raw'},...
-        promoter_activity_lm.Residuals{group_idx == 2,'Raw'})
+        promoter_activity_lm.Residuals{group_idx == 2,'Raw'});
 pval_promoter_13 = ranksum(promoter_activity_lm.Residuals{group_idx == 1,'Raw'},...
-        promoter_activity_lm.Residuals{group_idx == 3,'Raw'})
+        promoter_activity_lm.Residuals{group_idx == 3,'Raw'});
 pval_promoter_23 = ranksum(promoter_activity_lm.Residuals{group_idx == 2,'Raw'},...
-        promoter_activity_lm.Residuals{group_idx == 3,'Raw'})
+        promoter_activity_lm.Residuals{group_idx == 3,'Raw'});
 
 pval_enhancer_12 = ranksum(enhancer_activity_lm.Residuals{group_idx == 1,'Raw'},...
-        enhancer_activity_lm.Residuals{group_idx == 2,'Raw'})
+        enhancer_activity_lm.Residuals{group_idx == 2,'Raw'});
 pval_enhancer_13 = ranksum(enhancer_activity_lm.Residuals{group_idx == 1,'Raw'},...
-        enhancer_activity_lm.Residuals{group_idx == 3,'Raw'})
+        enhancer_activity_lm.Residuals{group_idx == 3,'Raw'});
 pval_enhancer_23 = ranksum(enhancer_activity_lm.Residuals{group_idx == 2,'Raw'},...
-        enhancer_activity_lm.Residuals{group_idx == 3,'Raw'})
+        enhancer_activity_lm.Residuals{group_idx == 3,'Raw'});
     
 % pval_enhancer_activity = ranksum(enhancer_activity_lm.Residuals{same_region_idx,'Raw'},...
 %         enhancer_activity_lm.Residuals{~same_region_idx,'Raw'});
@@ -62,7 +67,7 @@ grid on
 ax = gca;
 ax.XTickLabel = [];
 text(ax.XTick - .35,repmat(ax.YLim(1),3,1) - .2,labels,'FontSize',12)
-H = sigstar({[1,3], [2,3]},[ pval_promoter_13, pval_promoter_23])
+H = sigstar({[1,3], [2,3]},[ pval_promoter_13, pval_promoter_23]);
 
 subplot(1,2,2)
 boxplot(enhancer_activity_lm.Residuals{:,'Raw'},...
@@ -88,3 +93,6 @@ text(ax.XTick - .35,repmat(ax.YLim(1),3,1) - .05,labels,'FontSize',12)
 %     'Labels',{'Different Region','Same Region'})
 % title(sprintf('Enhancer Activity Residuals \n p = %.2g',pval_enhancer_activity))
 % grid on
+
+%% Distributions
+promoter_activity_lm.Residuals{group_idx == 3,'Raw'}

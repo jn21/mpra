@@ -33,7 +33,8 @@ T{:,'construct'} = construct_names;
 
 %% Part 2 - id's
 temp = cellfun(@(s) strsplit(s,{':','-'}),construct_names,'uni',false);
-temp = [temp{:}]';
+temp = vertcat(temp{:});
+%temp = [temp{:}]
 
 T{:,'oligo_id'} = temp(:,1);
 T{:,'construct_no_oligo_id'} = strcat(temp(:,2),'-',temp(:,3));
