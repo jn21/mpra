@@ -8,6 +8,10 @@ function res = explore_dnstream_sequence_signal(activity_type,signal,remove_reve
 
 mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 
+%remove infinities
+isfinite_idx = isfinite(mpra_data{:,'enhancer_activity'}) & isfinite(mpra_data{:,'promoter_activity'});
+mpra_data = mpra_data(isfinite_idx,:);
+
 if remove_reverse
     mpra_data = subset_table(mpra_data,'upstream_is_reverse',0);
     mpra_data = subset_table(mpra_data,'dnstream_is_reverse',0);

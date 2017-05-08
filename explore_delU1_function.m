@@ -2,15 +2,13 @@ function res = explore_delU1_function(activity_type,num_del_u1)
 
 mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 
+%remove infinities
+isfinite_idx = isfinite(mpra_data{:,'enhancer_activity'}) & isfinite(mpra_data{:,'promoter_activity'});
+mpra_data = mpra_data(isfinite_idx,:);
+
 mpra_data_no_addPAS = subset_table(mpra_data,'dnstream_addPAS',0);
 
-%% One U1 deletion
-%zero_del = subset_table(mpra_data_no_addPAS,'dnstream_num_delU1',0);
-
-%num_u1_del = 1:3;
-
-% for jj = {'E_ratio_avg_rep','P_ratio_avg_rep'}
-%     for ii = 1:length(num_u1_del)
+%% U1 deletion
 U1_del = subset_table(mpra_data_no_addPAS,'dnstream_num_delU1',num_del_u1);
 
 U1_del_corresponding_constructs = cellfun(@(s) strrep(s,'_delU1',''),U1_del{:,'construct_no_oligo_id'},...
