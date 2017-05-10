@@ -1,4 +1,4 @@
-function [lm_table,mpra] = convert_data_table_to_lm_table(mpra,id_only)
+function [lm_table,mpra] = convert_data_table_to_lm_table(mpra,id_only,remove_reverse)
 %Takes as input the mpra_data table. Converts it to a table for use with
 %fitlm. 
 %
@@ -9,6 +9,11 @@ function [lm_table,mpra] = convert_data_table_to_lm_table(mpra,id_only)
 
 if id_only
     mpra = subset_table(mpra,'dnstream_is_modified',0);
+end
+
+if remove_reverse
+    mpra = subset_table(mpra,'dnstream_is_reverse',0);
+    mpra = subset_table(mpra,'upstream_is_reverse',0);
 end
 
 unique_up_prefix = unique(mpra{:,'upstream_prefix'});
@@ -31,7 +36,7 @@ end
 lm_table = array2table(zeros(num_rows,num_vars));
 
 if id_only
-    lm_table.Properties.VariableNames = [unique_up_prefix_str' unique_dn_prefix_str' 'E_ratio' 'P_ratio'];
+    lm_table.Properties.VariableNames = [unique_up_prefix_str' unique_dn_prefix_str' 'promoter_activity' 'enhancer_activity'];
 else
     lm_table.Properties.VariableNames = [unique_up_prefix_str' unique_dn_prefix_str' 'PAS_change' 'addStrongPAS' 'U1_change' 'E_ratio' 'P_ratio'];
 end
@@ -55,8 +60,8 @@ if ~id_only
 end
 
 %% Response variables
-lm_table{:,'E_ratio'} = mpra{:,'E_ratio_avg_rep'};
-lm_table{:,'P_ratio'} = mpra{:,'P_ratio_avg_rep'};
+lm_table{:,'promoter_activity'} = mpra{:,'promoter_activity'};
+lm_table{:,'enhancer_activity'} = mpra{:,'enhancer_activity'};
 
 end
 

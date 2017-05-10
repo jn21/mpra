@@ -5,6 +5,8 @@ figdir = '~/Documents/mpra/fig/downstream_signal';
 
 signals = {'addPAS','addStrongPAS','delPAS','addU1'};
 
+run_anova = false;
+
 for kk = 1:length(activity_type)
     activity_table = table;
     
@@ -34,21 +36,23 @@ for kk = 1:length(activity_type)
             'VariableNames',{'diff','signal'});
 
         %this signal's anova
-        figure
-        [anova_p, anova_tab] = anova1(this_diff,{res.dn_ids},'off');
-        anova_table = cell2table(anova_tab);
-        anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
-        
-        boxplot(this_diff,{res.dn_ids})
-        title(sprintf('%s \n Signal: %s \n Variance Explained (ANOVA) = %.2g %%',activity_str,signals{ii},anova_var_explained*100),...
-            'Interpreter','none')
-        ax = gca;
-        ax.XTickLabels = '';
-        ylabel('Signal Effect')
-        xlabel('Downstream Sequence')
-        
-        fig_str = [activity_type{kk} '_' signals{ii} '_anova'];
-        saveas(gcf,fullfile(figdir,fig_str),'png')
+        if run_anova
+            figure
+            [anova_p, anova_tab] = anova1(this_diff,{res.dn_ids},'off');
+            anova_table = cell2table(anova_tab);
+            anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
+
+            boxplot(this_diff,{res.dn_ids})
+            title(sprintf('%s \n Signal: %s \n Variance Explained (ANOVA) = %.2g %%',activity_str,signals{ii},anova_var_explained*100),...
+                'Interpreter','none')
+            ax = gca;
+            ax.XTickLabels = '';
+            ylabel('Signal Effect')
+            xlabel('Downstream Sequence')
+
+            fig_str = [activity_type{kk} '_' signals{ii} '_anova'];
+            saveas(gcf,fullfile(figdir,fig_str),'png')
+        end
         
         activity_table = vertcat(activity_table,this_table);
         
@@ -72,21 +76,23 @@ for kk = 1:length(activity_type)
         this_signal = repmat({temp_str},length(this_diff),1);
         
         %this signal's anova
-        figure
-        [anova_p, anova_tab] = anova1(this_diff,{res.dn_ids},'off');
-        anova_table = cell2table(anova_tab);
-        anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
-        
-        boxplot(this_diff,{res.dn_ids})
-        title(sprintf('%s \n Signal: %s \n Variance Explained (ANOVA) = %.2g %%',activity_str,temp_str,anova_var_explained*100),...
-            'Interpreter','none')
-        ax = gca;
-        ax.XTickLabels = '';
-        ylabel('Signal Effect')
-        xlabel('Downstream Sequence')
-        
-        fig_str = [activity_type{kk} '_' temp_str '_anova'];
-        saveas(gcf,fullfile(figdir,fig_str),'png')
+        if run_anova
+            figure
+            [anova_p, anova_tab] = anova1(this_diff,{res.dn_ids},'off');
+            anova_table = cell2table(anova_tab);
+            anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
+
+            boxplot(this_diff,{res.dn_ids})
+            title(sprintf('%s \n Signal: %s \n Variance Explained (ANOVA) = %.2g %%',activity_str,temp_str,anova_var_explained*100),...
+                'Interpreter','none')
+            ax = gca;
+            ax.XTickLabels = '';
+            ylabel('Signal Effect')
+            xlabel('Downstream Sequence')
+
+            fig_str = [activity_type{kk} '_' temp_str '_anova'];
+            saveas(gcf,fullfile(figdir,fig_str),'png')
+        end
         
         this_table = table(this_diff,this_signal,...
             'VariableNames',{'diff','signal'});
@@ -96,7 +102,7 @@ for kk = 1:length(activity_type)
         this_result_str = sprintf([...
             'n = %d \n',...
             'median = %.2g \n',...
-            'pval = %.2g'],...
+            'p = %.2g'],...
             length(this_diff),median(this_diff),res(1).pval);
         
         result_struct(ii+jj).signal = temp_str;
@@ -107,7 +113,9 @@ for kk = 1:length(activity_type)
     
     f.PaperPositionMode = 'auto';
     f.Units = 'Normalized';
-    f.Position = [0 0 .65 .75];
+    f.OuterPosition = [0 0 .85 1];
+    f.Position = [0 0 .6 1];
+    %set(gca, 'LooseInset', [.13 .2 .095 .075]);
     
 %     label_order = {'addPAS','addStrongPAS','delPAS','delU1','delU1_delU1','delU1_delU1_delU1','addU1'}
 %     {result_struct.signal}
@@ -116,25 +124,26 @@ for kk = 1:length(activity_type)
     boxplot(activity_table{:,'diff'},activity_table{:,'signal'},...
         'orientation','horizontal',...
         'positions',label_order)
-    title(activity_str,'Interpreter','None','FontSize',14)
     xlabel('Signal Effect')
     ax = gca;
+    ax.FontSize = 14;
     hold on
     plot([0 0],[ax.YLim(1) - .5 ax.YLim(2)], 'k:')
+    title(activity_str,'Interpreter','None','FontSize',18)
     %ax.Position = [0 0 .8 1];
     
     %ax2 = axes('Position',get(ax,'Position'),'YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
     ax2 = axes('YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
+    
 
     linkaxes([ax ax2],'xy')
     
     axes(ax2)
     %offset = .1;
     %idx = ismember({result_struct.signal},label_order)
-    text(zeros(ii+jj,1)+ax.XLim(2)+offset,ax.YTick,{result_struct(label_order).string})
-    
+    text(zeros(ii+jj,1)+ax.XLim(2)+offset,ax.YTick,{result_struct(label_order).string},...
+        'FontSize',14)
 
-    
     fig_str = [activity_type{kk} '_downstream_signal_summary'];
     saveas(f,fullfile(figdir,fig_str),'png')
     
