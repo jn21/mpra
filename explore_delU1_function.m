@@ -1,4 +1,4 @@
-function res = explore_delU1_function(activity_type,num_del_u1)
+function res = explore_delU1_function(activity_type,num_del_u1,remove_up_reverse)
 
 mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
 
@@ -6,13 +6,17 @@ mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt'
 isfinite_idx = isfinite(mpra_data{:,'enhancer_activity'}) & isfinite(mpra_data{:,'promoter_activity'});
 mpra_data = mpra_data(isfinite_idx,:);
 
+if remove_up_reverse
+    mpra_data = subset_table(mpra_data,'upstream_is_reverse',0);
+end
+
 mpra_data_no_addPAS = subset_table(mpra_data,'dnstream_addPAS',0);
 
 %% U1 deletion
 U1_del = subset_table(mpra_data_no_addPAS,'dnstream_num_delU1',num_del_u1);
 
 U1_del_corresponding_constructs = cellfun(@(s) strrep(s,'_delU1',''),U1_del{:,'construct_no_oligo_id'},...
-    'Uni',false);
+    'Uni',false);   
 
 [~,locb] = ismember(U1_del_corresponding_constructs,mpra_data_no_addPAS{:,'construct_no_oligo_id'});
 

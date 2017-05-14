@@ -5,7 +5,7 @@ figdir = '~/Documents/mpra/fig/downstream_signal';
 
 signals = {'addPAS','addStrongPAS','delPAS','addU1'};
 
-run_anova = false;
+run_anova = true;
 
 for kk = 1:length(activity_type)
     activity_table = table;
@@ -21,13 +21,15 @@ for kk = 1:length(activity_type)
     
     for ii = 1:length(signals)
         if strcmp(signals{ii},'addStrongPAS')
-            remove_reverse = false;
+            remove_dn_reverse = false;
+            remove_up_reverse = true;
         else
-            remove_reverse = true;
+            remove_dn_reverse = false;
+            remove_up_reverse = true;
         end
 
         %[this_diff,this_pval] = explore_dnstream_sequence_signal(activity_type{kk},signals{ii},remove_reverse);
-        res = explore_dnstream_sequence_signal(activity_type{kk},signals{ii},remove_reverse);
+        res = explore_dnstream_sequence_signal(activity_type{kk},signals{ii},remove_up_reverse,remove_dn_reverse);
 
         %this_struct = struct('diff_data',this_diff,'signal',repmat(signals(ii),1,length(this_diff)));
 
@@ -42,11 +44,13 @@ for kk = 1:length(activity_type)
             anova_table = cell2table(anova_tab);
             anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
 
-            boxplot(this_diff,{res.dn_ids})
+            boxplot(this_diff,{res.dn_ids},...
+                'OutlierSize',1,...
+                'symbol','r.')
             title(sprintf('%s \n Signal: %s \n Variance Explained (ANOVA) = %.2g %%',activity_str,signals{ii},anova_var_explained*100),...
                 'Interpreter','none')
             ax = gca;
-            ax.XTickLabels = '';
+            ax.XTickLabel = '';
             ylabel('Signal Effect')
             xlabel('Downstream Sequence')
 
@@ -54,12 +58,24 @@ for kk = 1:length(activity_type)
             saveas(gcf,fullfile(figdir,fig_str),'png')
         end
         
+        figure;
+        scatter(res(1).nonsignal_data,res(1).signal_data)
+        xlabel('Native Sequence')
+        ylabel('Modified with Signal')
+        title(sprintf('%s \n %s',activity_str,signals{ii}),'Interpreter','none')
+        grid on
+        ax = gca;
+        ax.XLim = [-8 0];
+        ax.YLim = [-8 0];
+        hold on
+        plot([-8 0], [-8 0], 'r:')
+        
         activity_table = vertcat(activity_table,this_table);
         
         this_result_str = sprintf([...
             'n = %d \n',...
             'median = %.2g \n',...
-            'pval = %.2g'],...
+            'p = %.2g'],...
             length(this_diff),median(this_diff),res(1).pval);
         
         result_struct(ii).signal = signals{ii};
@@ -69,7 +85,7 @@ for kk = 1:length(activity_type)
     %U1 Deletions
     for jj = 1:3
         %[this_diff,this_pval] = explore_delU1_function(activity_type{kk},jj);
-        res = explore_delU1_function(activity_type{kk},jj);
+        res = explore_delU1_function(activity_type{kk},jj,true);
         this_diff = res(1).diff_data;
 
         temp_str = ['delU1' strjoin(repmat({'_delU1'},1,jj-1),'')];
@@ -82,7 +98,9 @@ for kk = 1:length(activity_type)
             anova_table = cell2table(anova_tab);
             anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
 
-            boxplot(this_diff,{res.dn_ids})
+            boxplot(this_diff,{res.dn_ids},...
+                'OutlierSize',1,...
+                'symbol','r.')
             title(sprintf('%s \n Signal: %s \n Variance Explained (ANOVA) = %.2g %%',activity_str,temp_str,anova_var_explained*100),...
                 'Interpreter','none')
             ax = gca;
@@ -126,16 +144,15 @@ for kk = 1:length(activity_type)
         'positions',label_order)
     xlabel('Signal Effect')
     ax = gca;
-    ax.FontSize = 14;
+    ax.FontSize = 18;
     hold on
     plot([0 0],[ax.YLim(1) - .5 ax.YLim(2)], 'k:')
-    title(activity_str,'Interpreter','None','FontSize',18)
+    title(activity_str,'Interpreter','None','FontSize',24)
     %ax.Position = [0 0 .8 1];
     
     %ax2 = axes('Position',get(ax,'Position'),'YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
     ax2 = axes('YAxisLocation', 'right', 'Color','none','XTick',[], 'YTickLabel','');
     
-
     linkaxes([ax ax2],'xy')
     
     axes(ax2)
