@@ -1,4 +1,4 @@
-function res = explore_dnstream_sequence_signal(activity_type,signal,remove_reverse)
+function res = explore_dnstream_sequence_signal(activity_type,signal,remove_up_reverse,remove_dn_reverse)
 %
 % Input
 %       signal: (string) field from mpra_data_table: Eg dnstream_addPAS
@@ -6,14 +6,17 @@ function res = explore_dnstream_sequence_signal(activity_type,signal,remove_reve
 %           'P_ratio_avg_rep')
 %       remove_reverse = (boolean) remove reverse constructs
 
-mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
+mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot_normalized.txt','Delimiter','\t');
 
 %remove infinities
 isfinite_idx = isfinite(mpra_data{:,'enhancer_activity'}) & isfinite(mpra_data{:,'promoter_activity'});
 mpra_data = mpra_data(isfinite_idx,:);
 
-if remove_reverse
+if remove_up_reverse
     mpra_data = subset_table(mpra_data,'upstream_is_reverse',0);
+end
+
+if remove_dn_reverse
     mpra_data = subset_table(mpra_data,'dnstream_is_reverse',0);
 end
 
@@ -60,6 +63,8 @@ dn_ids = full_signal_table{:,'dnstream_full_id'};
 pval = signrank(diff_data);
 
 res = struct('diff_data',diff_data,...
+    'signal_data',full_signal_table{:,activity_type},...
+    'nonsignal_data',full_corr_table{:,activity_type},...
     'up_ids',up_ids,...
     'dn_ids',dn_ids,...
     'pval',pval);

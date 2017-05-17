@@ -34,10 +34,19 @@ end
 res = struct;
 
 %% Load and subset data
-mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
+mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot_normalized.txt','Delimiter','\t');
 mpra_data = mpra_data(~mpra_data{:,'dnstream_is_modified'},:);
 isfinite_idx = isfinite(mpra_data{:,activity_type});
 mpra_data = mpra_data(isfinite_idx,:);
+
+%Remove noisy points
+% THRESHOLD = 2^7;
+% idx = (mpra_data{:,'Rep1_ATotal'} > THRESHOLD & ...
+%     mpra_data{:,'Rep2_ATotal'} > THRESHOLD & ...
+%     mpra_data{:,'Rep1_BTotal'} > THRESHOLD & ...
+%     mpra_data{:,'Rep2_BTotal'} > THRESHOLD);
+% 
+% mpra_data = mpra_data(idx,:);
 
 %% Build null distribution
 up_is_reverse_idx = logical(mpra_data{:,reverse_str});
@@ -101,22 +110,27 @@ anova_var_explained = cell2mat(anova_table{2,2})/cell2mat(anova_table{4,2});
 
 %% Boxplot - medians by promoter/enhancer derived
 %boxplot
+
+group_idx = (1 - T{:,'is_reverse'}).*(1 + strcmp(T{:,'derivation'},'promoter_derived'));
 bar_fig = figure;
-boxplot(T{:,'median_ratio'},T{:,'derivation'})
+%boxplot(T{:,'median_ratio'},T{:,'derivation'})
+boxplot(T{:,'median_ratio'},group_idx,...
+    'labels',{'Reverse','Enhancer Derived','Promoter Derived'})
 T_no_reverse = subset_table(T,'is_reverse',0);
 promoter_derived_data = subset_table(T_no_reverse,'derivation','promoter_derived');
 enhancer_derived_data = subset_table(T_no_reverse,'derivation','enhancer_derived');
 
 pval = ranksum(promoter_derived_data{:,'median_ratio'},enhancer_derived_data{:,'median_ratio'});
 
-title_str = sprintf('%s \n %s \n p = %.2g',activity_str,id_str_for_title,pval);
+title_str = sprintf('%s \n %s \n p (enhancer vs promoter) = %.2g',activity_str,id_str_for_title,pval);
 
 title(title_str,'Interpreter','none')
 
 
 bar_fig.PaperPositionMode = 'auto';
 bar_fig.Units = 'Normalized';
-bar_fig.Position = [0 0 .25 .6];
+bar_fig.Position = [0 0 .5 .7];
+set(gca,'FontSize',18)
 %fig.OuterPosition = [0 0 1 .65];
 %set(gca, 'LooseInset', [.03 .03 .03 .08]);
 
@@ -144,13 +158,16 @@ boxplot(mpra_data{:,activity_type},...
     mpra_data{:,id_str},...
     'grouporder',unique_ids(sort_idx),...
     'outliersize',1,...
-    'symbol','r.')
+    'symbol','r.',...
+    'BoxStyle','filled',...
+    'medianstyle','target')
 f = gca;
 f.Box = 'off';
 %ax.XTick = [];
 f.TickLength = [.01 .01];
 f.XTickLabelRotation = 90;
 f.XTickLabel = ' ';
+f.FontSize = 16;
 
 title_str2 = sprintf('%s \n Group by: %s \n Variance Explained (ANOVA) = %d %%',...
     activity_str,id_str_for_label,round(100*anova_var_explained));
@@ -162,7 +179,8 @@ anova_fig.PaperPositionMode = 'auto';
 anova_fig.Units = 'Normalized';
 anova_fig.Position = [0 0 1 .65];
 %fig.OuterPosition = [0 0 1 .65];
-set(gca, 'LooseInset', [.03 .03 .03 .08]);
+%set(gca, 'LooseInset', [.03 .03 .03 .08]);
+set(gca,'LooseInset',get(gca,'TightInset'))
     
 if save_plot
     save_str = sprintf('~/Documents/mpra/fig/up_dn_analysis/anova_%s_%s',...

@@ -25,17 +25,18 @@ raw_data{:,'is_intact_sequence'} = ~logical(raw_data{:,'dnstream_is_modified'}) 
                                    raw_data{:,'upstream_region_id'} == raw_data{:,'dnstream_region_id'};
                                
 %% Do some basic calculations                               
-raw_data{:,'rep1_A_ratio'} = log2(raw_data{:,'Rep1_ATotal'} ./ raw_data{:,'DNAInput_ATotal'});
-raw_data{:,'rep2_A_ratio'} = log2(raw_data{:,'Rep2_ATotal'} ./ raw_data{:,'DNAInput_ATotal'});
+NORM_FACTOR_A = .5 * (sum(raw_data{:,'Rep1_ATotal'}) + sum(raw_data{:,'Rep2_ATotal'}));
+NORM_FACTOR_B = .5 * (sum(raw_data{:,'Rep1_BTotal'}) + sum(raw_data{:,'Rep2_BTotal'}));
+
+raw_data{:,'rep1_A_ratio'} = log2(raw_data{:,'Rep1_ATotal'} ./ sum(raw_data{:,'Rep1_ATotal'}) * NORM_FACTOR_A ./ raw_data{:,'DNAInput_ATotal'});
+raw_data{:,'rep2_A_ratio'} = log2(raw_data{:,'Rep2_ATotal'} ./ sum(raw_data{:,'Rep2_ATotal'}) * NORM_FACTOR_A ./ raw_data{:,'DNAInput_ATotal'});
 
 raw_data{:,'promoter_activity'} = (raw_data{:,'rep1_A_ratio'} + raw_data{:,'rep2_A_ratio'})/2;
 
-raw_data{:,'rep1_B_ratio'} = log2(raw_data{:,'Rep1_BTotal'} ./ raw_data{:,'DNAInput_BTotal'});
-raw_data{:,'rep2_B_ratio'} = log2(raw_data{:,'Rep2_BTotal'} ./ raw_data{:,'DNAInput_BTotal'});
+raw_data{:,'rep1_B_ratio'} = log2(raw_data{:,'Rep1_BTotal'} ./ sum(raw_data{:,'Rep1_BTotal'}) * NORM_FACTOR_B ./ raw_data{:,'DNAInput_BTotal'});
+raw_data{:,'rep2_B_ratio'} = log2(raw_data{:,'Rep2_BTotal'} ./ sum(raw_data{:,'Rep2_BTotal'}) * NORM_FACTOR_B ./ raw_data{:,'DNAInput_BTotal'});
 
 raw_data{:,'enhancer_activity'} = (raw_data{:,'rep1_B_ratio'} + raw_data{:,'rep2_B_ratio'})/2;
-
-
                                
 %% Write result
-writetable(raw_data,'~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
+writetable(raw_data,'~/Documents/mpra/data/mpra_processed_data_with_annot_normalized.txt','Delimiter','\t');

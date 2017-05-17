@@ -3,9 +3,10 @@ activity_type = {'promoter_activity','enhancer_activity'};
 
 figdir = '~/Documents/mpra/fig/downstream_signal';
 
-signals = {'addPAS','addStrongPAS','delPAS','addU1'};
+%signals = {'addPAS','addStrongPAS','delPAS','addU1'};
+signals = {'addPAS','addStrongPAS','addU1'};
 
-run_anova = true;
+run_anova = false;
 
 for kk = 1:length(activity_type)
     activity_table = table;
@@ -58,17 +59,17 @@ for kk = 1:length(activity_type)
             saveas(gcf,fullfile(figdir,fig_str),'png')
         end
         
-        figure;
-        scatter(res(1).nonsignal_data,res(1).signal_data)
-        xlabel('Native Sequence')
-        ylabel('Modified with Signal')
-        title(sprintf('%s \n %s',activity_str,signals{ii}),'Interpreter','none')
-        grid on
-        ax = gca;
-        ax.XLim = [-8 0];
-        ax.YLim = [-8 0];
-        hold on
-        plot([-8 0], [-8 0], 'r:')
+%         figure;
+%         scatter(res(1).nonsignal_data,res(1).signal_data)
+%         xlabel('Native Sequence')
+%         ylabel('Modified with Signal')
+%         title(sprintf('%s \n %s',activity_str,signals{ii}),'Interpreter','none')
+%         grid on
+%         ax = gca;
+%         ax.XLim = [-8 0];
+%         ax.YLim = [-8 0];
+%         hold on
+%         plot([-8 0], [-8 0], 'r:')
         
         activity_table = vertcat(activity_table,this_table);
         
@@ -83,7 +84,7 @@ for kk = 1:length(activity_type)
     end
 
     %U1 Deletions
-    for jj = 1:3
+    for jj = 1%:3
         %[this_diff,this_pval] = explore_delU1_function(activity_type{kk},jj);
         res = explore_delU1_function(activity_type{kk},jj,true);
         this_diff = res(1).diff_data;
@@ -127,6 +128,7 @@ for kk = 1:length(activity_type)
         result_struct(ii+jj).string = this_result_str;
     end
 
+    %activity_table = subset_table(activity_table,'signal',{'addPAS','addStrongPAS','addU1','delU1'});
     f = figure;
     
     f.PaperPositionMode = 'auto';
@@ -137,7 +139,9 @@ for kk = 1:length(activity_type)
     
 %     label_order = {'addPAS','addStrongPAS','delPAS','delU1','delU1_delU1','delU1_delU1_delU1','addU1'}
 %     {result_struct.signal}
-    label_order = fliplr(1:7);
+    
+    %label_order = fliplr(1:7);
+    label_order = fliplr(1:4);
     %[~,pos_idx] = ismember({result_struct.signal},label_order);
     boxplot(activity_table{:,'diff'},activity_table{:,'signal'},...
         'orientation','horizontal',...
@@ -162,7 +166,7 @@ for kk = 1:length(activity_type)
         'FontSize',14)
 
     fig_str = [activity_type{kk} '_downstream_signal_summary'];
-    saveas(f,fullfile(figdir,fig_str),'png')
+    %saveas(f,fullfile(figdir,fig_str),'png')
     
     
 %     [hx, hy] = format_ticks(ax2,'',{result_struct.string})

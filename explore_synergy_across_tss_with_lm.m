@@ -1,6 +1,15 @@
-mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
+mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot_normalized.txt','Delimiter','\t');
 isfinite_idx = isfinite(mpra_data{:,'enhancer_activity'}) & isfinite(mpra_data{:,'promoter_activity'});
 mpra_data = mpra_data(isfinite_idx,:);
+
+%Remove noisy points
+% THRESHOLD = 2^7;
+% idx = (mpra_data{:,'Rep1_ATotal'} > THRESHOLD & ...
+%     mpra_data{:,'Rep2_ATotal'} > THRESHOLD & ...
+%     mpra_data{:,'Rep1_BTotal'} > THRESHOLD & ...
+%     mpra_data{:,'Rep2_BTotal'} > THRESHOLD);
+% 
+% mpra_data = mpra_data(idx,:);
 
 %% Run Regressions
 [lm_table, mpra_table_for_lm] = convert_data_table_to_lm_table(mpra_data,true,true);
@@ -126,7 +135,7 @@ legend show
 xlabel('Fitted')
 ylabel('Residual')
 title('Promoter Activity')
-saveas(gcf,'~/Documents/mpra/fig/tss_synergy/fitted_vs_residual_promoter_activity','png')
+%saveas(gcf,'~/Documents/mpra/fig/tss_synergy/fitted_vs_residual_promoter_activity','png')
 
 figure
 scatter(enhancer_activity_lm.Fitted(group_idx == 1),...
@@ -146,4 +155,13 @@ legend show
 xlabel('Fitted')
 ylabel('Residual')
 title('Enhancer Activity')
-saveas(gcf,'~/Documents/mpra/fig/tss_synergy/fitted_vs_residual_enhancer_activity','png')
+%saveas(gcf,'~/Documents/mpra/fig/tss_synergy/fitted_vs_residual_enhancer_activity','png')
+
+%%
+T = table(mpra_table_for_lm{:,'construct'},...
+    group_idx,...
+    promoter_activity_lm.Residuals{:,'Raw'},...
+    promoter_activity_lm.Fitted,...
+    'VariableNames',{'construct','group_idx','residual','fitted'});
+
+T2 = subset_table(T,'group_idx',3);

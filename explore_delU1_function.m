@@ -1,6 +1,6 @@
 function res = explore_delU1_function(activity_type,num_del_u1,remove_up_reverse)
 
-mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot.txt','Delimiter','\t');
+mpra_data = readtable('~/Documents/mpra/data/mpra_processed_data_with_annot_normalized.txt','Delimiter','\t');
 
 %remove infinities
 isfinite_idx = isfinite(mpra_data{:,'enhancer_activity'}) & isfinite(mpra_data{:,'promoter_activity'});
